@@ -23,14 +23,14 @@ int main(int argc, char *argv[]) {
 	Sudoku* s = new Sudoku(blockHeight, blockWidth, size, g);
 	s->Print();
 
-
-	if (s->Solve()) {
+	if (!s->Solve()) {
 		cout << "sem solucao" << endl;
+		delete s;
 		return 0;
 	}
 
-	cout << "solucao" << endl;
 	s->Print();
+	cout << "solucao" << endl;
 	delete s;
 
 	return 0;

@@ -9,114 +9,122 @@ Sudoku::~Sudoku() {
 	delete this->g;
 }
 
-vector<Cell*> Sudoku::FillGraph() {
-	vector<Cell*> result;
-	unsigned int maxValue = 1;
-
-	for (int filledNodes = 0; filledNodes < this->g->Size(); filledNodes++) {
-		int max = -1, index = -1;
-
-		for (int i = 0; i < this->g->Size(); i++) {
-			if (IsFilled(this->g->nodes[i], result)) {
-				continue;
-			}
-			int degree = SaturationDegree(this->g->nodes[i], result);
-			if (degree > max) {
-				max = degree;
-				index = i;
-				continue;
-			}
-			if (degree != max) {
-				continue;
-			}
-			if (Degree(this->g->nodes[index]) < Degree(this->g->nodes[i])) {
-				index = i;
-			}
-		}
-
-		FillCell(this->g->nodes[index], result, &maxValue);   
+void Sudoku::FillGraph() {
+	for (int filledNodes = this->FilledNodesCount(); filledNodes < this->g->Size(); filledNodes++) {
+		this->FillCell(this->g->nodes[this->IndexToFill()]);   
 	}
-	return result;
 }
 
-void Sudoku::FillCell(Node* n, vector<Cell*> filledCells, unsigned int* maxValue) {
-	map<int, bool> adjacentValues = this->AdjacentValues(n, filledCells);
-
-	if (adjacentValues.size() == *maxValue) {
-		maxValue++;
-		n->c->value = *maxValue;
-		filledCells.push_back(n->c);
-		return;
+int Sudoku::FilledNodesCount() {
+	int count = 0;
+	for (auto const& n : this->g->nodes) {
+		if(this->IsFilled(n)) {
+			count++;
+		}
 	}
-	// var colorNum = usedColors.Where(c => !colors.Contains(c)).OrderByDescending(c => nodeSet.Count(n => n.Color == c)).First();
+	return count;
+}
 
-	for (unsigned int i = 0; i < *maxValue; i++) {
-		if (adjacentValues[i]) {
+int Sudoku::IndexToFill() {
+	int max = -1, index = -1;
+	for (int i = 0; i < this->g->Size(); i++) {
+		if (this->IsFilled(this->g->nodes[i])) {
 			continue;
 		}
-
-	}
-
-
-	n->c->value = *maxValue;
-	filledCells.push_back(n->c);
-}
-
-map<int, bool> Sudoku::AdjacentValues(Node* n, vector<Cell*> filledCells) {
-	map<int, bool> values;
-	for (auto const& c : filledCells) {
-		if (n->Contains(c)) {
-			values[c->value] = true;
+		int degree = this->UniqueDegree(this->g->nodes[i]);
+		if (degree > max) {
+			max = degree;
+			index = i;
+			continue;
+		}
+		if (degree != max) {
+			continue;
+		}
+		if (this->Degree(this->g->nodes[index]) < this->Degree(this->g->nodes[i])) {
+			index = i;
 		}
 	}
-	return values;
+	return index;
 }
 
-int Sudoku::SaturationDegree(Node* n, vector<Cell*> filledCells) {
+void Sudoku::FillCell(Node* n) {
+	map<int, bool> adjacentValues = this->UniqueAdjacentValues(n);
+
+	if (adjacentValues.size() == (unsigned int)this->size) {
+		n->c->value = this->size+1;
+		return;
+	}
+
+	vector<int> availableValues;
+	for (int i = 1; i <= this->size; i++) {
+		if (!adjacentValues[i]) {
+			availableValues.push_back(i);
+		}
+	}
+
+	if (availableValues.size() == 1) {
+		n->c->value = availableValues[0];
+		return;
+	}
+
+	int* valuesCount = this->ValuesCount();
+	int maxVal = 0, finalValue = 0;
+	for (unsigned int i = 0; i < availableValues.size(); i++) {
+		if (valuesCount[availableValues[i]] > maxVal) {
+			finalValue = availableValues[i];
+			maxVal = valuesCount[availableValues[i]];
+		}
+	}
+
+	n->c->value = finalValue;
+}
+
+int* Sudoku::ValuesCount() {
+	int *valuesCount = new int[this->size];
+	for (auto const& n : this->g->nodes) {
+		if (this->IsFilled(n) && n->c->value <= this->size) {
+			valuesCount[n->c->value-1]++;
+		}
+	}
+	return valuesCount;
+}
+
+map<int, bool> Sudoku::UniqueAdjacentValues(Node* n) {
 	map<int, bool> adjacentValues;
-	for (auto const& c : filledCells) {
-		if (n->Contains(c)) {
-			adjacentValues[c->value] = true;
+	for (auto const& adj : n->edgeNodes) {
+		if (this->IsFilled(adj)) {
+			adjacentValues[adj->c->value] = true;
 		}
 	}
-	return adjacentValues.size();
+	return adjacentValues;
 }
 
-bool Sudoku::IsFilled(Node* n, vector<Cell*> filledCells) {
-	for (auto const& c : filledCells) {
-		if (c->IsEqual(n->c)) {
-			return true;
-		}
-	}
-	return false;
+int Sudoku::UniqueDegree(Node* n) {
+	return this->UniqueAdjacentValues(n).size();
 }
 
 int Sudoku::Degree(Node* n) {
-	return n->edgeNodes.size();
+	int filledAdjNodes = 0;
+	for (auto const& adj : n->edgeNodes) {
+		if (this->IsFilled(adj)) {
+			filledAdjNodes++;
+		}
+	}
+	return filledAdjNodes;
+}
+
+bool Sudoku::IsFilled(Node* n) {
+	return n->c->value != 0;
 }
 
 bool Sudoku::Solve() {
 
-	// this->AddNodes(g);
 	this->AddEdges();
 
-	for (auto const& n : this->g->nodes[10]->edgeNodes) {
-		std::cout << n->c->column << " " << n->c->line << std::endl;
-	}
+	this->FillGraph();
 
-	vector<Cell*> result = this->FillGraph();
-
-	return this->ValidateResult(result);
+	return this->ValidateResult();
 }
-
-// void Sudoku::AddNodes(Graph* g) {
-//     for (int i = 0; i < this->size; i++) {
-//         for (int j = 0; j < this->size; j++) {
-//             Node* n = new Node(&this->cells[i][j]);
-//             g->AddNode(n);
-//         }
-//     }
-// }
 
 void Sudoku::AddEdges() {
 	int index, currentIndex, blockStartH, blockStartW, blockIndex, startBlockIndex;
@@ -131,13 +139,11 @@ void Sudoku::AddEdges() {
 		
 		for (int j = 0; j < this->size; j++) {
 			index = j + n->c->line * this->size;
-			std::cout << index << " ";
 			if (index != currentIndex) {
 				g->AddEdge(n, g->nodes[index]);
 			}
 
-			index = n->c->line + j * this->size;
-			std::cout << index << " ";
+			index = n->c->column + j * this->size;
 			if (index != currentIndex) {
 				g->AddEdge(n, g->nodes[index]);
 			}
@@ -147,23 +153,18 @@ void Sudoku::AddEdges() {
 			}
 
 			index = blockIndex;
-			std::cout << index << " ";
 			if (index != currentIndex) {
 				g->AddEdge(n, g->nodes[index]);
 			}
 			blockIndex++;
 		}
-		std::cout << std::endl;
-		
 	}
 }
 
-bool Sudoku::ValidateResult(vector<Cell*> result) {
-	if (result.size() < this->size * this->size) {
-		return false;
-	}
-	for (auto const& cell : result) {
-		if (cell->value == 0 || cell->value > this->size) {
+bool Sudoku::ValidateResult() {
+	for (auto const& n : this->g->nodes) {
+		if (n->c->value == 0 || n->c->value > this->size) {
+			cout << n->c->column << " " << n->c->line;
 			return false;
 		}
 	}
