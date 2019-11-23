@@ -13,4 +13,4 @@ $(ALL): $(OBJ)
 	$(CC) $(CPPFLAGS) $(OBJ) -o $@ 
 
 clean:
-	rm $(ALL) *.o * */*.o
+	rm $(ALL) *.o */*.o
