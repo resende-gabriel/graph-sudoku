@@ -14,8 +14,7 @@ class Node {
 		Node(Cell* cell);
 		~Node();
 		bool IsEqual(Node* n);
-		bool Contains(Node* n);
-		bool Contains(Cell* c);
+		bool HasEdge(Node* n);
 
 };
 

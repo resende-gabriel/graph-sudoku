@@ -21,28 +21,17 @@ Node* Graph::FindNode(vector<Node*> nodeList, Node* n) {
 	return nullptr;
 }
 
-bool Graph::Contains(vector<Node*> nodeList, Node* n) {
-	return this->FindNode(nodeList, n) != nullptr;
-}
-
 void Graph::AddNode(Node* n) {
 	this->nodes.push_back(n);
 }
 
 void Graph::AddEdge(Node* orig, Node* dest) {
-	Node* o = this->FindNode(this->nodes, orig);
-	Node* d = this->FindNode(this->nodes, dest);
-
-	if (o == nullptr || d == nullptr) {
+	if (orig->HasEdge(dest) || dest->HasEdge(orig)) {
 		return;
 	}
 
-	if (o->Contains(d) || d->Contains(o)) {
-		return;
-	}
-
-	o->edgeNodes.push_back(d);
-	d->edgeNodes.push_back(o);
+	orig->edgeNodes.push_back(dest);
+	dest->edgeNodes.push_back(orig);
 }
 
 int Graph::Size() {

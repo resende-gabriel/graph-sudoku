@@ -7,45 +7,39 @@ using std::cout;
 using std::endl;
 using std::ifstream;
 
-void readSpecs(int *size, int *blockHeight, int *blockWidth, ifstream& fs);
-void readInputs(Graph* g, int size, ifstream& fs);
+void readInputs(int *size, int *blockHeight, int *blockWidth, Graph* g, ifstream& fs);
 
 int main(int argc, char *argv[]) {
 
 	ifstream fs;
 	fs.open(argv[1]);
+	if (!fs.is_open()) {
+		return 0;
+	}
 	int size, blockHeight, blockWidth;
-	readSpecs(&size, &blockHeight, &blockWidth, fs);
-
 	Graph* g = new Graph();
-	readInputs(g, size, fs);
+	readInputs(&size, &blockHeight, &blockWidth, g, fs);
 
 	Sudoku* s = new Sudoku(blockHeight, blockWidth, size, g);
-	s->Print();
 
 	if (!s->Solve()) {
 		cout << "sem solucao" << endl;
-		delete s;
-		return 0;
+	} else {
+		cout << "solucao" << endl;
 	}
-
 	s->Print();
-	cout << "solucao" << endl;
 	delete s;
-
 	return 0;
 }
 
-void readSpecs(int *size, int *blockHeight, int *blockWidth, ifstream& fs) {
-	fs >> *size >> *blockHeight >> *blockWidth;
-}
 
-void readInputs(Graph* g, int size, ifstream& fs) {
+void readInputs(int *size, int *blockHeight, int *blockWidth, Graph* g, ifstream& fs) {
 	int value;
-	for (int i = 0; i < size; i++) {
-		for (int j = 0; j < size; j++) {
+	fs >> *size >> *blockHeight >> *blockWidth;
+	for (int line = 0; line < *size; line++) {
+		for (int column = 0; column < *size; column++) {
 			fs >> value;
-			g->AddNode(new Node(new Cell(j, i, value)));
+			g->AddNode(new Node(new Cell(column, line, value)));
 		}
 	}
 }

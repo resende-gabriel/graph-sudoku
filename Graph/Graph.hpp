@@ -15,7 +15,6 @@ class Graph {
 		void AddEdge(Node* orig, Node* dest);
 		void AddNode(Node* n);
 		Node* FindNode(vector<Node*> nodeList, Node* n);
-		bool Contains(vector<Node*> nodeList, Node* n);
 		vector<Node*> nodes;
 		int Size();
 };
