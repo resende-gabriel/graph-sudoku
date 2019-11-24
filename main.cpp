@@ -35,7 +35,7 @@ int main(int argc, char *argv[]) {
 
 void readInputs(int *size, int *blockHeight, int *blockWidth, Graph* g, ifstream& fs) {
 	int value;
-	fs >> *size >> *blockHeight >> *blockWidth;
+	fs >> *size >> *blockWidth >> *blockHeight;
 	for (int line = 0; line < *size; line++) {
 		for (int column = 0; column < *size; column++) {
 			fs >> value;

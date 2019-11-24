@@ -62,6 +62,11 @@ void Sudoku::FillCell(Node* n) {
 		}
 	}
 
+	if (availableValues.size() == 0) {
+		n->c->value = this->size+1;
+		return;
+	}
+
 	if (availableValues.size() == 1) {
 		n->c->value = availableValues[0];
 		return;
@@ -76,14 +81,18 @@ void Sudoku::FillCell(Node* n) {
 		}
 	}
 
+	delete valuesCount;
 	n->c->value = finalValue;
 }
 
 int* Sudoku::ValuesCount() {
-	int *valuesCount = new int[this->size];
+	int *valuesCount = new int[this->size+1];
+	for (int i = 0; i < this->size+1; i++) {
+		valuesCount[i] = 0;
+	}
 	for (auto const& n : this->g->nodes) {
 		if (this->IsFilled(n) && n->c->value <= this->size) {
-			valuesCount[n->c->value-1]++;
+			valuesCount[n->c->value]++;
 		}
 	}
 	return valuesCount;
@@ -118,11 +127,8 @@ bool Sudoku::IsFilled(Node* n) {
 }
 
 bool Sudoku::Solve() {
-
 	this->AddEdges();
-
 	this->FillGraph();
-
 	return this->ValidateResult();
 }
 
@@ -164,7 +170,6 @@ void Sudoku::AddEdges() {
 bool Sudoku::ValidateResult() {
 	for (auto const& n : this->g->nodes) {
 		if (n->c->value == 0 || n->c->value > this->size) {
-			cout << n->c->column << " " << n->c->line;
 			return false;
 		}
 	}
