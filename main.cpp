@@ -7,6 +7,7 @@ using std::cout;
 using std::endl;
 using std::ifstream;
 
+// le as informacoes do arquivo passado como argumento, inserindo os valores em um grafo
 void readInputs(int *size, int *blockHeight, int *blockWidth, Graph* g, ifstream& fs);
 
 int main(int argc, char *argv[]) {
@@ -23,9 +24,9 @@ int main(int argc, char *argv[]) {
 	Sudoku* s = new Sudoku(blockHeight, blockWidth, size, g);
 
 	if (!s->Solve()) {
-		cout << "sem solucao" << endl;
+		cout << "sem solução" << endl;
 	} else {
-		cout << "solucao" << endl;
+		cout << "solução" << endl;
 	}
 	s->Print();
 	delete s;

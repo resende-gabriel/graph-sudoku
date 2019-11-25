@@ -9,13 +9,15 @@ using std::vector;
 
 class Graph {
 	public:
+		vector<Node*> nodes;
+
 		Graph();
 		~Graph();
-		void InsertNode(int v);
+		/* adiciona uma aresta entre dois nos */
 		void AddEdge(Node* orig, Node* dest);
+		/* adiciona um no' no grafo */
 		void AddNode(Node* n);
-		Node* FindNode(vector<Node*> nodeList, Node* n);
-		vector<Node*> nodes;
+		/* retorna a quantidade de nos no grafo */
 		int Size();
 };
 

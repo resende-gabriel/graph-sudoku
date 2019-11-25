@@ -9,6 +9,8 @@ Sudoku::~Sudoku() {
 	delete this->g;
 }
 
+/* enquanto a quantidade de nos preenchidos for menor que a quantidade de nos no grafo,
+preenche um no por vez considerando a posicao mais facil de identificar o valor a ser inserido */ 
 void Sudoku::FillGraph() {
 	for (int filledNodes = this->FilledNodesCount(); filledNodes < this->g->Size(); filledNodes++) {
 		this->FillCell(this->g->nodes[this->IndexToFill()]);   
@@ -25,6 +27,9 @@ int Sudoku::FilledNodesCount() {
 	return count;
 }
 
+/* busca o no que possui o maior numero de vizinhos preenchidos, considerando primeiro
+a quantidade de valores unicos nos vizinhos, e usando a quantidade de valores nao unicos
+como desempate */
 int Sudoku::IndexToFill() {
 	int max = -1, index = -1;
 	for (int i = 0; i < this->g->Size(); i++) {
@@ -50,11 +55,14 @@ int Sudoku::IndexToFill() {
 void Sudoku::FillCell(Node* n) {
 	map<int, bool> adjacentValues = this->UniqueAdjacentValues(n);
 
-	if (adjacentValues.size() == (unsigned int)this->size) {
+	// se a quantidade de valores unicos dos vizinhos for maior ou igual a n, o sudoku ja
+	// estara' errado, e nao ha' como descobrir um valor valido para o no'
+	if (adjacentValues.size() >= (unsigned int)this->size) {
 		n->c->value = this->size+1;
 		return;
 	}
 
+	// lista os valores que podem ser usados para preencher o no' atual
 	vector<int> availableValues;
 	for (int i = 1; i <= this->size; i++) {
 		if (!adjacentValues[i]) {
@@ -72,6 +80,8 @@ void Sudoku::FillCell(Node* n) {
 		return;
 	}
 
+	// se houver mais de um valor disponivel, escolhe o que tem mais ocorrencias
+	// no grafo
 	int* valuesCount = this->ValuesCount();
 	int maxVal = 0, finalValue = 0;
 	for (unsigned int i = 0; i < availableValues.size(); i++) {
@@ -99,6 +109,7 @@ int* Sudoku::ValuesCount() {
 }
 
 map<int, bool> Sudoku::UniqueAdjacentValues(Node* n) {
+	// utiliza um mapa para evitar que valores ja inseridos sejam inseridos novamente
 	map<int, bool> adjacentValues;
 	for (auto const& adj : n->edgeNodes) {
 		if (this->IsFilled(adj)) {
@@ -135,14 +146,18 @@ bool Sudoku::Solve() {
 void Sudoku::AddEdges() {
 	int index, currentIndex, blockStartH, blockStartW, blockIndex, startBlockIndex;
 
+	// como os nos sao armazenados sequencialmente, devem ser feitos calculos para
+	// identificar quais estao na mesma linha, coluna ou bloco
 	for (auto const& n : this->g->nodes) {
 
+		// calcula o inicio do bloco no qual o no atual esta contido
 		blockStartH = n->c->line - n->c->line % this->blockHeight;
 		blockStartW = n->c->column - n->c->column % this->blockWidth;
 		blockIndex = blockStartW + blockStartH * this->size;
 		startBlockIndex = blockIndex;
 		currentIndex = n->c->column + n->c->line * this->size;
 		
+		// itera n vezes para pegar os outros n-1 elementos que estao na mesma linha/coluna/bloco 
 		for (int j = 0; j < this->size; j++) {
 			index = j + n->c->line * this->size;
 			if (index != currentIndex) {
@@ -154,6 +169,7 @@ void Sudoku::AddEdges() {
 				g->AddEdge(n, g->nodes[index]);
 			}
 
+			// se o contador atingir a largura do bloco, avanca 1 linha e recua para a coluna inicial
 			if (blockIndex != startBlockIndex && blockIndex % this->blockWidth == 0) {
 				blockIndex = blockIndex + this->size - this->blockWidth;
 			}
@@ -169,6 +185,8 @@ void Sudoku::AddEdges() {
 
 bool Sudoku::ValidateResult() {
 	for (auto const& n : this->g->nodes) {
+		// se uma celula possui valor igual a 0 ou maior que n, ela e' invalida, portanto,
+		// a solucao do sudoku tambem e' invalida
 		if (n->c->value == 0 || n->c->value > this->size) {
 			return false;
 		}

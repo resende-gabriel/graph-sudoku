@@ -7,25 +7,13 @@ Graph::~Graph() {
 		delete n;
 	}
 }
-		
-Node* Graph::FindNode(vector<Node*> nodeList, Node* n) {
-	if (n == nullptr) {
-		return nullptr;
-	}
-
-	for (auto const& current : nodeList) {
-		if(current->IsEqual(n)) {
-			return current;
-		}
-	}
-	return nullptr;
-}
 
 void Graph::AddNode(Node* n) {
 	this->nodes.push_back(n);
 }
 
 void Graph::AddEdge(Node* orig, Node* dest) {
+	// nao adiciona novamente caso os nos ja tenham uma aresta entre si
 	if (orig->HasEdge(dest) || dest->HasEdge(orig)) {
 		return;
 	}
